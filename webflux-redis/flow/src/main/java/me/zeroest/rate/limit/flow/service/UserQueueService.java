@@ -5,6 +5,8 @@ import org.springframework.data.redis.core.ReactiveZSetOperations;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.util.function.Function;
+
 import static me.zeroest.rate.limit.flow.exception.ErrorCode.QUEUE_ALREADY_REGISTERED_USER;
 
 @Service
@@ -30,11 +32,12 @@ public class UserQueueService {
         final long unixTimestamp = System.currentTimeMillis();
         final String userQueueWaitKey = USER_QUEUE_WAIT_KEY.formatted(queueName);
 
+        // add 의 결과가 false 즉 이미 등록되어 있던 건이어도 score(unixTimestamp)의 값은 업데이트 된다
         return reactiveZSetOperations.add(userQueueWaitKey, userId.toString(), unixTimestamp)
-                .filter(isRegistered -> isRegistered) // 이미 존재하는 userId 는 return false
+                .filter(registed -> registed) // 이미 존재하는 userId 는 return false
                 .switchIfEmpty(Mono.error(QUEUE_ALREADY_REGISTERED_USER.build(queueName)))
                 .flatMap(isRegistered -> reactiveZSetOperations.rank(userQueueWaitKey, userId.toString()))
-                .map(rank -> rank >= 0 ? rank + 1 : rank);
+                .map(transformResultRank());
     }
 
     // 진입을 허용
@@ -67,7 +70,11 @@ public class UserQueueService {
 
         return reactiveZSetOperations.rank(userQueueWaitKey, userId.toString())
                 .defaultIfEmpty(-1L)
-                .map(rank -> rank >= 0 ? rank + 1 : rank);
+                .map(transformResultRank());
+    }
+
+    private Function<Long, Long> transformResultRank() {
+        return rawRank -> rawRank >= 0 ? rawRank + 1 : rawRank;
     }
 
 }
