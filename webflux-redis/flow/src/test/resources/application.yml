@@ -1,0 +1,8 @@
+spring:
+  data:
+    redis:
+      port: 63790
+
+logging:
+  level:
+    me.zeroest.rate.limit.flow: debug
