@@ -12,3 +12,6 @@ POST localhost:9010/api/v1/queue?user_id=4
 POST localhost:9010/api/v1/queue?user_id=5
 ### 6
 POST localhost:9010/api/v1/queue?user_id=6
+
+### allowUser
+POST localhost:9010/api/v1/queue/allow?request_count=5

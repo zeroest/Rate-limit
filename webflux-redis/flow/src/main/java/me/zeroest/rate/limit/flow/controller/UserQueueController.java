@@ -1,12 +1,10 @@
 package me.zeroest.rate.limit.flow.controller;
 
 import lombok.RequiredArgsConstructor;
+import me.zeroest.rate.limit.flow.dto.AllowUserResponse;
 import me.zeroest.rate.limit.flow.dto.RegisterUserResponse;
 import me.zeroest.rate.limit.flow.service.UserQueueService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -24,6 +22,15 @@ public class UserQueueController {
     ) {
         return userQueueService.registerWaitQueue(queueName, userId)
                 .map(RegisterUserResponse::new);
+    }
+
+    @PostMapping("/allow")
+    public Mono<?> allowUser(
+            @RequestParam(name = "queue_name", defaultValue = "default") String queueName,
+            @RequestParam(name = "request_count") Long requestCount
+    ) {
+        return userQueueService.allowUser(queueName, requestCount)
+                .map(allowedCount -> new AllowUserResponse(requestCount, allowedCount));
     }
 
 }
