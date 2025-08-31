@@ -25,7 +25,7 @@ public class UserQueueController {
     }
 
     @PostMapping("/allow")
-    public Mono<?> allowUser(
+    public Mono<AllowUserResponse> allowUser(
             @RequestParam(name = "queue_name", defaultValue = "default") String queueName,
             @RequestParam(name = "request_count") Long requestCount
     ) {
