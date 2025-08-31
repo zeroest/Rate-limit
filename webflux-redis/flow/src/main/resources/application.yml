@@ -1,4 +1,19 @@
 server:
   port: 9010
 
-spring.application.name: flow
+spring:
+  application.name: flow
+  data:
+    redis:
+      cluster:
+        nodes:
+          - 127.0.0.1:7001
+          - 127.0.0.1:7002
+          - 127.0.0.1:7003
+          - 127.0.0.1:7101
+          - 127.0.0.1:7102
+          - 127.0.0.1:7103
+
+logging:
+  level:
+    me.zeroest.rate.limit.flow: debug

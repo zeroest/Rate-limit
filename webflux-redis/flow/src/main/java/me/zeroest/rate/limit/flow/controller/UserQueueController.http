@@ -1,0 +1,14 @@
+
+### registerUser
+### 1
+POST localhost:9010/api/v1/queue?user_id=1
+### 2
+POST localhost:9010/api/v1/queue?user_id=2
+### 3
+POST localhost:9010/api/v1/queue?user_id=3
+### 4
+POST localhost:9010/api/v1/queue?user_id=4
+### 5
+POST localhost:9010/api/v1/queue?user_id=5
+### 6
+POST localhost:9010/api/v1/queue?user_id=6
