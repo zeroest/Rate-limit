@@ -1,0 +1,68 @@
+version: "3"
+
+services:
+  redis-master-1:
+    image: redis:6.2
+    container_name: redis-master-1
+    volumes:
+      - ./redis-master-1.conf:/etc/redis.conf
+      - ./command.sh:/etc/command.sh
+    command: bash -c "chmod +x /etc/command.sh && bash /etc/command.sh"
+    ports:
+      - 7001:7001
+      - 7002:7002
+      - 7003:7003
+      - 7101:7101
+      - 7102:7102
+      - 7103:7103
+      - 5540:5540
+
+  redis-master-2:
+    network_mode: "service:redis-master-1"
+    image: redis:6.2
+    container_name: redis-master-2
+    volumes:
+      - ./redis-master-2.conf:/etc/redis.conf
+    command: redis-server /etc/redis.conf
+
+  redis-master-3:
+    network_mode: "service:redis-master-1"
+    image: redis:6.2
+    container_name: redis-master-3
+    volumes:
+      - ./redis-master-3.conf:/etc/redis.conf
+    command: redis-server /etc/redis.conf
+
+  redis-slave-1:
+    network_mode: "service:redis-master-1"
+    image: redis:6.2
+    container_name: redis-slave-1
+    volumes:
+      - ./redis-slave-1.conf:/etc/redis.conf
+    command: redis-server /etc/redis.conf
+
+  redis-slave-2:
+    network_mode: "service:redis-master-1"
+    image: redis:6.2
+    container_name: redis-slave-2
+    volumes:
+      - ./redis-slave-2.conf:/etc/redis.conf
+    command: redis-server /etc/redis.conf
+
+  redis-slave-3:
+    network_mode: "service:redis-master-1"
+    image: redis:6.2
+    container_name: redis-slave-3
+    volumes:
+      - ./redis-slave-3.conf:/etc/redis.conf
+    command: redis-server /etc/redis.conf
+
+  redis-insight:
+    network_mode: "service:redis-master-1"
+    image: redis/redisinsight:latest
+    container_name: redis_insight
+    # ports:
+    #   - 5540:5540
+    volumes:
+      - ./redis-insight:/data
+
