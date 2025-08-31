@@ -3,6 +3,7 @@ package me.zeroest.rate.limit.flow.controller;
 import lombok.RequiredArgsConstructor;
 import me.zeroest.rate.limit.flow.dto.AllowUserResponse;
 import me.zeroest.rate.limit.flow.dto.IsAllowedUserResponse;
+import me.zeroest.rate.limit.flow.dto.RankNumberResponse;
 import me.zeroest.rate.limit.flow.dto.RegisterUserResponse;
 import me.zeroest.rate.limit.flow.service.UserQueueService;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +42,15 @@ public class UserQueueController {
     ) {
         return userQueueService.isAllowed(queueName, userId)
                 .map(isAllowed -> new IsAllowedUserResponse(userId, isAllowed));
+    }
+
+    @GetMapping("/rank")
+    public Mono<RankNumberResponse> getRankUser(
+            @RequestParam(name = "queue_name", defaultValue = "default") String queueName,
+            @RequestParam(name = "user_id") Long userId
+    ) {
+        return userQueueService.getRank(queueName, userId)
+                .map(rank -> new RankNumberResponse(userId, rank));
     }
 
 }

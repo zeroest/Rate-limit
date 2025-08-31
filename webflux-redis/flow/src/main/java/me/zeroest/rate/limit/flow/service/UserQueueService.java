@@ -61,4 +61,13 @@ public class UserQueueService {
                 .map(rank -> rank >= 0);
     }
 
+    // 대기 번호 조회
+    public Mono<Long> getRank(final String queueName, final Long userId) {
+        final String userQueueWaitKey = USER_QUEUE_WAIT_KEY.formatted(queueName);
+
+        return reactiveZSetOperations.rank(userQueueWaitKey, userId.toString())
+                .defaultIfEmpty(-1L)
+                .map(rank -> rank >= 0 ? rank + 1 : rank);
+    }
+
 }

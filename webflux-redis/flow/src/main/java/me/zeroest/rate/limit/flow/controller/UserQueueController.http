@@ -29,3 +29,17 @@ GET localhost:9010/api/v1/queue/allowed?user_id=4
 GET localhost:9010/api/v1/queue/allowed?user_id=5
 ### 6
 GET localhost:9010/api/v1/queue/allowed?user_id=6
+
+### getRankUser
+### 1
+GET localhost:9010/api/v1/queue/rank?user_id=1
+### 2
+GET localhost:9010/api/v1/queue/rank?user_id=2
+### 3
+GET localhost:9010/api/v1/queue/rank?user_id=3
+### 4
+GET localhost:9010/api/v1/queue/rank?user_id=4
+### 5
+GET localhost:9010/api/v1/queue/rank?user_id=5
+### 6
+GET localhost:9010/api/v1/queue/rank?user_id=6

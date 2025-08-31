@@ -134,4 +134,31 @@ class UserQueueServiceTest {
                 .verifyComplete();
     }
 
+    @Test
+    void getRank() {
+        StepVerifier.create(
+                        userQueueService.registerWaitQueue("default", 101L)
+                                .then(userQueueService.registerWaitQueue("default", 102L))
+                                .then(userQueueService.registerWaitQueue("default", 103L))
+                                .then(userQueueService.getRank("default", 101L))
+                )
+                .expectNext(1L)
+                .verifyComplete();
+
+        StepVerifier.create(userQueueService.getRank("default", 102L))
+                .expectNext(2L)
+                .verifyComplete();
+
+        StepVerifier.create(userQueueService.getRank("default", 103L))
+                .expectNext(3L)
+                .verifyComplete();
+    }
+
+    @Test
+    void emptyRank() {
+        StepVerifier.create(userQueueService.getRank("default", 100L))
+                .expectNext(-1L)
+                .verifyComplete();
+    }
+
 }
