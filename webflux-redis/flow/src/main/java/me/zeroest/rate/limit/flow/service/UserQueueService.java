@@ -52,4 +52,13 @@ public class UserQueueService {
                 .count();
     }
 
+    // 진입이 가능한 상태인지 조회
+    public Mono<Boolean> isAllowed(final String queueName, final Long userId) {
+        final String userQueueProceedKey = USER_QUEUE_PROCEED_KEY.formatted(queueName);
+
+        return reactiveZSetOperations.rank(userQueueProceedKey, userId.toString())
+                .defaultIfEmpty(-1L)
+                .map(rank -> rank >= 0);
+    }
+
 }

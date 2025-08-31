@@ -15,3 +15,17 @@ POST localhost:9010/api/v1/queue?user_id=6
 
 ### allowUser
 POST localhost:9010/api/v1/queue/allow?request_count=5
+
+### isAllowedUser
+### 1
+GET localhost:9010/api/v1/queue/allowed?user_id=1
+### 2
+GET localhost:9010/api/v1/queue/allowed?user_id=2
+### 3
+GET localhost:9010/api/v1/queue/allowed?user_id=3
+### 4
+GET localhost:9010/api/v1/queue/allowed?user_id=4
+### 5
+GET localhost:9010/api/v1/queue/allowed?user_id=5
+### 6
+GET localhost:9010/api/v1/queue/allowed?user_id=6
