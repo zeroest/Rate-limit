@@ -39,6 +39,22 @@ public class UserQueueService {
         this.reactiveZSetOperations = reactiveRedisTemplate.opsForZSet();
     }
 
+    public Mono<String> generateToken(final String queueName, final Long userId) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            String input = "user-queue-%s-%d".formatted(queueName, userId);
+            byte[] encodedHash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : encodedHash) {
+                hexString.append(String.format("%02x", b));
+            }
+            return Mono.just(hexString.toString());
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     // redis sortedset
     // - key: userId
     // - value: unix timestamp
@@ -76,6 +92,14 @@ public class UserQueueService {
         return reactiveZSetOperations.rank(userQueueProceedKey, userId.toString())
                 .defaultIfEmpty(-1L)
                 .map(rank -> rank >= 0);
+    }
+
+    // 진입이 가능한 상태인지 조회
+    public Mono<Boolean> isAllowedByToken(final String queueName, final Long userId, final String token) {
+        return this.generateToken(queueName, userId)
+                .filter(generatedToken -> generatedToken.equalsIgnoreCase(token))
+                .map(i -> true)
+                .defaultIfEmpty(false);
     }
 
     // 대기 번호 조회

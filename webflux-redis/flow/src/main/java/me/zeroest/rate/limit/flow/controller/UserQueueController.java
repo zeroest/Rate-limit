@@ -6,8 +6,12 @@ import me.zeroest.rate.limit.flow.dto.IsAllowedUserResponse;
 import me.zeroest.rate.limit.flow.dto.RankNumberResponse;
 import me.zeroest.rate.limit.flow.dto.RegisterUserResponse;
 import me.zeroest.rate.limit.flow.service.UserQueueService;
+import org.springframework.http.ResponseCookie;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.time.Duration;
 
 @RestController
 @RequestMapping("/api/v1/queue")
@@ -51,6 +55,25 @@ public class UserQueueController {
     ) {
         return userQueueService.getRank(queueName, userId)
                 .map(rank -> new RankNumberResponse(userId, rank));
+    }
+
+    @GetMapping("/touch")
+    Mono<String> touch(
+            @RequestParam(name = "queue_name", defaultValue = "default") String queueName,
+            @RequestParam(name = "user_id") Long userId,
+            ServerWebExchange exchange
+    ) {
+        return Mono.defer(() -> userQueueService.generateToken(queueName, userId))
+                .map(token -> {
+                    exchange.getResponse().addCookie(
+                            ResponseCookie
+                                    .from("user-queue-%s-token".formatted(queueName), token)
+                                    .maxAge(Duration.ofSeconds(300))
+                                    .path("/")
+                                    .build()
+                    );
+                    return token;
+                });
     }
 
 }

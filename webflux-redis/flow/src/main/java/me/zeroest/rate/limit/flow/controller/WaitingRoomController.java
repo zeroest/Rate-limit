@@ -3,11 +3,15 @@ package me.zeroest.rate.limit.flow.controller;
 import lombok.RequiredArgsConstructor;
 import me.zeroest.rate.limit.flow.exception.ApplicationException;
 import me.zeroest.rate.limit.flow.service.UserQueueService;
+import org.springframework.http.HttpCookie;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.reactive.result.view.Rendering;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.Objects;
 
 import static me.zeroest.rate.limit.flow.exception.ErrorCode.QUEUE_ALREADY_REGISTERED_USER;
 
@@ -21,10 +25,15 @@ public class WaitingRoomController {
     Mono<Rendering> waitingRoomPage(
             @RequestParam(name = "queue_name", defaultValue = "default") String queueName,
             @RequestParam(name = "user_id") Long userId,
-            @RequestParam(name = "redirect_url") String redirectUrl
+            @RequestParam(name = "redirect_url") String redirectUrl,
+            ServerWebExchange exchange
     ) {
+        String key = "user-queue-%s-token".formatted(queueName);
+        HttpCookie cookieValue = exchange.getRequest().getCookies().getFirst(key);
+        String token = Objects.isNull(cookieValue) ? "" : cookieValue.getValue();
+
         // 1. 입장이 허용되어  page redirect 가능한 상태인가?
-        return userQueueService.isAllowed(queueName, userId)
+        return userQueueService.isAllowedByToken(queueName, userId, token)
                 .filter(allowed -> allowed)
                 // 2. 어디로 이동해야 하는가?
                 .flatMap(allowed -> Mono.just(Rendering.redirectTo(redirectUrl).build()))
