@@ -14,6 +14,9 @@ spring:
           - 127.0.0.1:7102
           - 127.0.0.1:7103
 
+scheduler:
+  enabled: true
+
 logging:
   level:
     me.zeroest.rate.limit.flow: debug

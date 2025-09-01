@@ -1,27 +1,41 @@
 package me.zeroest.rate.limit.flow.service;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.ReactiveZSetOperations;
+import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.function.Function;
 
 import static me.zeroest.rate.limit.flow.exception.ErrorCode.QUEUE_ALREADY_REGISTERED_USER;
 
+@Slf4j
 @Service
 public class UserQueueService {
 
     private static final String USER_QUEUE_WAIT_KEY = "users:queue:%s:wait";
+    private static final String USER_QUEUE_WAIT_KEY_FOR_SCAN = "users:queue:*:wait";
     private static final String USER_QUEUE_PROCEED_KEY = "users:queue:%s:proceed";
 
-//    private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
+    private static final Long maxAllowUserCount = 3L;
+
+    private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
 
     private final ReactiveZSetOperations<String, String> reactiveZSetOperations;
 
+    @Value("${scheduler.enabled:true}")
+    private Boolean isEnableScheduler;
+
 
     public UserQueueService(ReactiveRedisTemplate<String, String> reactiveRedisTemplate) {
-//        this.reactiveRedisTemplate = reactiveRedisTemplate;
+        this.reactiveRedisTemplate = reactiveRedisTemplate;
         this.reactiveZSetOperations = reactiveRedisTemplate.opsForZSet();
     }
 
@@ -75,6 +89,27 @@ public class UserQueueService {
 
     private Function<Long, Long> transformResultRank() {
         return rawRank -> rawRank >= 0 ? rawRank + 1 : rawRank;
+    }
+
+    @Scheduled(initialDelay = 5000, fixedDelay = 10000)
+    public void scheduleAllowUser() {
+        if (!isEnableScheduler) {
+            log.debug("Scheduler is disabled");
+            return;
+        }
+        log.debug("called scheduling");
+
+        // 사용자를 허가
+        reactiveRedisTemplate.scan(ScanOptions.scanOptions()
+                        .match(USER_QUEUE_WAIT_KEY_FOR_SCAN)
+                        .count(100)
+                        .build())
+                .map(key -> key.split(":")[2])
+                .flatMap(queueName ->
+                        allowUser(queueName, maxAllowUserCount)
+                                .doOnNext(allowed -> log.info("Tried %d and allowed %d members of %s queue".formatted(maxAllowUserCount, allowed, queueName)))
+                )
+                .subscribe();
     }
 
 }

@@ -6,3 +6,6 @@ spring:
 logging:
   level:
     me.zeroest.rate.limit.flow: debug
+
+scheduler:
+  enabled: false
